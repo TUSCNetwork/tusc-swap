@@ -5,7 +5,7 @@ import bottle
 import log
 
 logger = log.setup_custom_logger('root')
-logger.debug('Starting OCC to TUSC swap server')
+logger.debug('Starting OCC to TUSC registration server')
 
 # Only here to load the API. TODO: turn it into an object if we care
 import tusc_api.webctrl_tusc_api

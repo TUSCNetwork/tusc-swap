@@ -1,7 +1,7 @@
 from bottle import route, request
-import logging
 from tusc_api import gate_tusc_api
 from time import sleep
+import logging
 
 logger = logging.getLogger('root')
 logger.debug('loading')

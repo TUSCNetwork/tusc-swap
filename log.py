@@ -8,7 +8,7 @@ def setup_custom_logger(name):
 
     s_handler = logging.StreamHandler()
     s_handler.setFormatter(formatter)
-    f_handler = logging.FileHandler(filename='main.log')
+    f_handler = logging.FileHandler(filename=name + '.log')
     f_handler.setFormatter(formatter)
 
     inner_logger = logging.getLogger(name)

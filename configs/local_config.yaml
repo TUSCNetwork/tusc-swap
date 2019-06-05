@@ -4,3 +4,13 @@ tusc_api:
   tusc_wallet_rpc_endpoint: "/rpc"
   tusc_wallet_rpc_version: "2.0"
   swap_account_name: "occtotusc"
+db:
+  host: "localhost"
+  user: "fakeuser"
+  password: "fakepass"
+  database: "tusc-swap"
+  port: 5432
+swapper:
+  apikey: "UNKNOWN"
+  ethereum_network_api_url: "https://api.etherscan.io/api"
+  wallet_address_occ_omega: "UNKNOWN"

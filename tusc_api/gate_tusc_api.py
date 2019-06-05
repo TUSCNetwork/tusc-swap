@@ -98,6 +98,40 @@ def register_account(account_name: str, public_key: str) -> dict:
         return resp
 
 
+def suggest_brain_key() -> dict:
+    resp, error = send_request("suggest_brain_key", [], True)
+
+    if error == ErrorCodeFailedMethodNameResponse:
+        # handle suggest_brain_key specific errors
+        return DefaultErrorMessage
+    else:
+        return resp
+
+
+def get_account(account_name: str) -> dict:
+    resp, error = send_request("get_account", [account_name], True)
+
+    if error == ErrorCodeFailedMethodNameResponse:
+        return DefaultErrorMessage
+    else:
+        return resp
+
+
+def transfer(to: str, amount: str) -> dict:
+    resp, error = send_request("transfer",
+                               [tusc_api_cfg["swap_account_name"],
+                                to,
+                                amount,
+                                "TUSC",
+                                "",
+                                True], False)
+
+    if error == ErrorCodeFailedMethodNameResponse:
+        return DefaultErrorMessage
+    else:
+        return resp
+
+
 def send_request(method_name: str, params: list, do_not_log_data=False) -> (dict, int):
     # when error is ErrorCodeFailedWithResponse, pass back to caller.
     # When error is ErrorCodeFailedMethodNameResponse, handle per method_name
