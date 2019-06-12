@@ -15,6 +15,10 @@ def get_transactions_list(starting_block_no: int = 0) -> list:
     return gate.get_transactions_list(starting_block_no)
 
 
+def get_token_transactions_list(starting_block_no: int = 0) -> list:
+    return gate.get_token_transactions_list(starting_block_no)
+
+
 def handle_new_transactions():
     # Loop through transactions list and find all hashes.
     highest_block = db.get_highest_block_handled()

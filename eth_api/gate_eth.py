@@ -44,6 +44,21 @@ def get_transactions_list(starting_block_no: int = 0) -> list:
         return resp
 
 
+def get_token_transactions_list(starting_block_no: int = 0) -> list:
+
+    resp, error = send_request({
+        "module": "account",
+        "action": "tokentx",
+        "startblock": str(starting_block_no),
+        "sort": "asc",
+    })
+
+    if error == ErrorCodeFailedMethodNameResponse:
+        return []
+    else:
+        return resp
+
+
 def send_request(command_params: dict) -> (dict, int):
     # When error is ErrorCodeFailedWithResponse, pass back to caller.
     # When error is ErrorCodeFailedMethodNameResponse, handle per method_name

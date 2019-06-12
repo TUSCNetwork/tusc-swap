@@ -1,10 +1,12 @@
-from bottle import route, request
+from bottle import route, request, Bottle
 from tusc_api import gate_tusc_api
 from time import sleep
 import logging
 
 logger = logging.getLogger('root')
 logger.debug('loading')
+
+tusc_web_ctrl = Bottle()
 
 # example response
 # ```
@@ -55,5 +57,7 @@ def register_account():
     else:
         return
 
+
+tusc_web_ctrl.run()
 
 logger.debug('loaded')

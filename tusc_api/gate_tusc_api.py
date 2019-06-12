@@ -65,7 +65,7 @@ def register_account(account_name: str, public_key: str) -> dict:
     # <referrer_account> <referrer_percent> <broadcast>
     account_name_restrictions = "Account names must be more than 7 and less than 64 characters. " \
                                 "They must consist of lower case characters, numbers, and '-'. " \
-                                "They Cannot start with a number."
+                                "They cannot start with a number."
     if len(account_name) < 8:
         return {"error": "Account name '" + account_name + "' is too short. " + account_name_restrictions}
     if len(account_name) > 63:

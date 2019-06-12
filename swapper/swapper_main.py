@@ -10,7 +10,6 @@ import db_access.db as db
 
 if __name__ == '__main__':
     logger.debug('Starting swapper')
-    #print(eth_api.handle_new_transactions())
     db.initiate_database_connection()
 
-    print("Highest block handled = {}".format(db.get_highest_block_handled()))
+    print(db.get_swap_stats())
