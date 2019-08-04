@@ -152,6 +152,7 @@ def send_request(method_name: str, params: list, do_not_log_data=False) -> (dict
 
     logger.debug("posting to: " + str(url))
 
+    # TODO: Handle timeouts if wallet isn't online
     r = requests.post(url, data=command_json)
 
     try:
