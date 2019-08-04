@@ -15,6 +15,6 @@ if __name__ == '__main__':
     logger.debug('Starting server')
     db.initiate_database_connection()
     main_bottle.merge(tusc_web_ctrl)
-    main_bottle.run(host='localhost', port=8080)
+    main_bottle.run(host='0.0.0.0', port=8080)
 
 app = bottle.default_app()

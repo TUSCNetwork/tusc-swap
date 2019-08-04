@@ -6,7 +6,7 @@ tusc_api:
   swap_account_name: "occtotusc"
 db:
   host: "localhost"
-  user: "fakeuser"
+  user: "postgres"
   password: "fakepass"
   database: "tusc-swap"
   port: 5432
