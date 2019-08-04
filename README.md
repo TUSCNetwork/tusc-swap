@@ -11,7 +11,7 @@ Setting up an AWS node:
 AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
 
 1. `sudo yum install git gcc python3 python3-dev`
-1. `sudo pip3 install web3 requests bottle`
+1. `sudo pip3 install web3 requests bottle pyyaml`
 1. `mkdir swapper`
 1. `cd swapper`
 
