@@ -2,6 +2,8 @@ import requests
 import json
 import logging
 from config import cfg
+from web3 import Web3, HTTPProvider
+import eth_api.test_data as test_data
 
 logger = logging.getLogger('root')
 logger.debug('loading')
@@ -13,6 +15,121 @@ ErrorCodeFailedWithResponse = 1
 ErrorCodeFailedMethodNameResponse = 2
 
 eth_api_cfg = cfg["eth_api"]
+general_cfg = cfg["general"]
+
+swapper_contract_abi = [
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "last_occ_balance",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": False,
+        "inputs": [
+            {
+                "name": "tusc_address",
+                "type": "string"
+            }
+        ],
+        "name": "doSwap",
+        "outputs": [
+            {
+                "name": "success",
+                "type": "bool"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "occ_token",
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "tokens_swapped",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "swaps_attempted",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "total_tokens",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "_omega_address",
+                "type": "address"
+            },
+            {
+                "name": "_occ_contract_address",
+                "type": "address"
+            }
+        ],
+        "payable": False,
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    }
+]
+
+w3 = Web3(HTTPProvider('https://ropsten.infura.io'))
+
+swapper_contract = w3.eth.contract(
+    address=Web3.toChecksumAddress('0x04861e6eb04889f0549d52be118e7c66e92ac9dc'),
+    abi=swapper_contract_abi,
+)
 
 
 def get_account_balance() -> dict:
@@ -41,7 +158,30 @@ def get_transactions_list(starting_block_no: int = 0) -> list:
     if error == ErrorCodeFailedMethodNameResponse:
         return []
     else:
-        return resp
+        # filter out contract creation transaction
+        filtered_resp = []
+        hashes = {}
+
+        for tran in resp:
+            if tran["to"].lower() == eth_api_cfg["wallet_address_occ_omega"].lower() and \
+                    len(tran["input"]) == 202 and tran['hash'] not in hashes:
+                try:
+                    temp = swapper_contract.decode_function_input(tran["input"])
+                    if len(temp) > 0 and "tusc_address" in temp[1]:
+                        tran["tusc_address"] = temp[1]["tusc_address"]
+                    else:
+                        logger.error("Error in transaction from swapper contract")
+                        logger.error("Transaction: " + tran['hash'])
+                        logger.error("Decoded input: " + temp)
+                        tran["tusc_address"] = "UNKNOWN"
+                except ValueError as err:
+                    logger.error("Error parsing transaction input: " + str(err))
+                    logger.error("Transaction: " + tran['hash'])
+
+                filtered_resp.append(tran)
+                hashes[tran['hash']] = True
+
+        return filtered_resp
 
 
 def get_token_transactions_list(starting_block_no: int = 0) -> list:
@@ -56,10 +196,42 @@ def get_token_transactions_list(starting_block_no: int = 0) -> list:
     if error == ErrorCodeFailedMethodNameResponse:
         return []
     else:
-        return resp
+        # filter out contract creation transaction
+        filtered_resp = []
+        hashes = {}
+
+        for tran in resp:
+            if tran["to"].lower() == eth_api_cfg["wallet_address_occ_omega"].lower() and \
+                    len(tran["input"]) == 202 and tran['hash'] not in hashes:
+                try:
+                    temp = swapper_contract.decode_function_input(tran["input"])
+                    if len(temp) > 0 and "tusc_address" in temp[1]:
+                        tran["tusc_address"] = temp[1]["tusc_address"]
+                    else:
+                        logger.error("Error in transaction from swapper contract")
+                        logger.error("Transaction: " + tran['hash'])
+                        logger.error("Decoded input: " + temp)
+                        tran["tusc_address"] = "UNKNOWN"
+                except ValueError as err:
+                    logger.error("Error parsing transaction input: " + str(err))
+                    logger.error("Transaction: " + tran['hash'])
+
+                filtered_resp.append(tran)
+                hashes[tran['hash']] = True
+
+        return filtered_resp
 
 
-def send_request(command_params: dict) -> (dict, int):
+def send_request(command_params: dict) -> (list, int):
+    if general_cfg["testing"]:
+        if command_params["action"] == "tokentx":
+            if command_params["startblock"] == "5858119":
+                return [], ErrorCodeSuccess
+            else:
+                return [test_data.Test_tran_1, test_data.Test_tran_2,
+                        test_data.Test_tran_3, test_data.Test_tran_3_dupe,
+                        test_data.Test_tran_4], ErrorCodeSuccess
+
     # When error is ErrorCodeFailedWithResponse, pass back to caller.
     # When error is ErrorCodeFailedMethodNameResponse, handle per method_name
 
@@ -69,6 +241,7 @@ def send_request(command_params: dict) -> (dict, int):
     api_params = {
         'address': eth_api_cfg["wallet_address_occ_omega"],
         'apikey': eth_api_cfg["api_key"],
+        'contractaddress': eth_api_cfg["occ_contract_address"]
     }
 
     api_params.update(command_params)
@@ -86,11 +259,6 @@ def send_request(command_params: dict) -> (dict, int):
         elif "error" in api_response_json.keys():
             logger.error("Error in response from ETH api")
             logger.error("Command response: " + str(api_response_json))
-            # generic_errors_handled, error = handle_generic_tusc_errors(api_response_json)
-            # if error == 1:
-            #     return generic_errors_handled, ErrorCodeFailedWithResponse
-            # else:
-            #     return generic_errors_handled, ErrorCodeFailedMethodNameResponse
         else:
             logger.error("Unsure what happened with ETH API")
             logger.error("Command response: " + str(api_response_json))
@@ -98,4 +266,4 @@ def send_request(command_params: dict) -> (dict, int):
             return DefaultErrorMessage, ErrorCodeFailedWithResponse
     except json.JSONDecodeError as err:
         logger.error(err)
-        return {"error": "Internal server error"}, ErrorCodeFailedWithResponse
+        return [], ErrorCodeFailedWithResponse

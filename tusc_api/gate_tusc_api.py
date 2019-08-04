@@ -14,7 +14,7 @@ ErrorCodeFailedWithResponse = 1
 ErrorCodeFailedMethodNameResponse = 2
 
 tusc_api_cfg = cfg["tusc_api"]
-
+general_cfg = cfg["general"]
 
 def build_request_dict(method_name: str, params: list) -> dict:
     tusc_wallet_command_structure = {
@@ -133,6 +133,10 @@ def transfer(to: str, amount: str) -> dict:
 
 
 def send_request(method_name: str, params: list, do_not_log_data=False) -> (dict, int):
+    if general_cfg["testing"]:
+        if method_name == "get_account" or method_name == "transfer":
+            return {}, ErrorCodeSuccess
+
     # when error is ErrorCodeFailedWithResponse, pass back to caller.
     # When error is ErrorCodeFailedMethodNameResponse, handle per method_name
     req = build_request_dict(method_name, params)

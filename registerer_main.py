@@ -3,7 +3,7 @@
 import bottle
 import log
 
-logger = log.setup_custom_logger('root')
+logger = log.setup_custom_logger('root', 'registerer')
 logger.debug('Starting OCC to TUSC registration server')
 
 from tusc_api.webctrl_tusc_api import tusc_web_ctrl

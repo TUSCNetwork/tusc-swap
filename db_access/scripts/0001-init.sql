@@ -1,9 +1,9 @@
 create table transfers(
     id                      SERIAL,
-    eth_transaction_hash    varchar(255) unique not null,
-    tusc_account_name       varchar(255) not null,
-    occ_amount              bigint not null,
-    tusc_amount             bigint not null,
+    eth_transaction_hash    text unique not null,
+    tusc_account_name       text not null,
+    occ_amount              text not null,
+    tusc_amount             text not null,
     created_at              timestamp without time zone default (now() at time zone 'utc'),
     primary key (id, eth_transaction_hash)
 );
