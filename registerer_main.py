@@ -13,7 +13,6 @@ from tusc_api.webctrl_tusc_api import tusc_api
 import db_access.db as db
 
 
-
 if __name__ == '__main__':
     logger.debug('Starting server')
     db.initiate_database_connection()
