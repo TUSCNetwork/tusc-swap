@@ -43,7 +43,6 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
         1. Change the local domain socket connection and the IPv4 connection from "peer" to "md5" and save it
     1. `sudo systemctl enable postgresql.service`
     1. `sudo service postgresql start`
-    1. `sudo su - postgres`
     1. `psql -U postgres`
     1. You'll be in the PSQL prompt now.
     1. Change the postgres user password

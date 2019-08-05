@@ -18,3 +18,4 @@ eth_api:
 general:
   shut_off_date: "2019-6-13 11:11:00"  # In UTC timezone
   testing: False
+  swap_interval: 900 # in seconds.
