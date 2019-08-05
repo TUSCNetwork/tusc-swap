@@ -11,7 +11,7 @@ db:
   database: "tusc-swap"
   port: 5432
 eth_api:
-  apikey: "UNKNOWN"
+  api_key: "UNKNOWN"
   ethereum_network_api_url: "https://api.etherscan.io/api"
   wallet_address_occ_omega: "UNKNOWN"
   occ_contract_address: "0x75584b2bfa5eb391c8234abcfb4cde5c07e2cf30"
