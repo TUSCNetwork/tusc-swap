@@ -1,6 +1,8 @@
 import logging
 import psycopg2
 import psycopg2.extras
+from decimal import Decimal
+from datetime import datetime
 from config import cfg
 
 logger = logging.getLogger('root')
@@ -127,7 +129,16 @@ def get_swap_stats() -> dict:
     if len(rows) < 1:
         return {"occ_swapped": 0, "tusc_swapped": 0}
 
-    return {"occ_swapped": str(rows[0]["occ_swapped"]), "tusc_swapped": str(rows[0]["tusc_swapped"])}
+    occ_left_to_swap = Decimal(general_cfg["maximum_occ"]) - rows[0]["occ_swapped"]
+
+    seconds_to_end_of_swap = datetime.strptime(general_cfg["shut_off_date"], '%Y-%m-%d %H:%M:%S') - datetime.now()
+
+    return {
+        "occ_swapped": str(rows[0]["occ_swapped"]),
+        "tusc_swapped": str(rows[0]["tusc_swapped"]),
+        "occ_left_to_swap": str(occ_left_to_swap),
+        "seconds_to_end_of_swap": str(seconds_to_end_of_swap.total_seconds())
+    }
 
 
 logger.debug('loaded')

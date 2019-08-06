@@ -16,6 +16,7 @@ eth_api:
   wallet_address_occ_omega: "UNKNOWN"
   occ_contract_address: "0x75584b2bfa5eb391c8234abcfb4cde5c07e2cf30"
 general:
-  shut_off_date: "2019-6-13 11:11:00"  # In UTC timezone
+  shut_off_date: "2019-10-01 00:00:00"  # In UTC timezone
   testing: False
   swap_interval: 900 # in seconds.
+  maximum_occ: "100000000000000000000000000000"
