@@ -53,8 +53,10 @@ def register_account():
 
 # example response
 # {
-#     "occ_swapped": "102348857281025782841613573730",
-#     "tusc_swapped": "5117442864051290"
+#     "end_of_swap_date": "2019-10-01 00:00:00",
+#     "occ_left_to_swap": "100000000000000000000000000000",
+#     "occ_swapped": "0",
+#     "tusc_swapped": "0"
 # }
 # Note that OCC uses 18 decimal places of precision and TUSC uses 5. So the above values are really:
 # OCC: 102348857281.025782841613573730
