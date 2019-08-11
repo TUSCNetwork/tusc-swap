@@ -126,17 +126,31 @@ def get_swap_stats() -> dict:
         return {}
 
     rows = cur.fetchall()
-    if len(rows) < 1:
-        return {"occ_swapped": 0, "tusc_swapped": 0}
 
-    occ_left_to_swap = Decimal(general_cfg["maximum_occ"]) - rows[0]["occ_swapped"]
+    occ_swapped = 0
+    tusc_swapped = 0
 
     seconds_to_end_of_swap = datetime.strptime(general_cfg["shut_off_date"], '%Y-%m-%d %H:%M:%S') - datetime.now()
 
+    if len(rows) < 1:
+        return {"occ_swapped": str(occ_swapped),
+                "tusc_swapped": str(tusc_swapped),
+                "occ_left_to_swap": format(Decimal(general_cfg["maximum_occ"]), 'f'),
+                "seconds_to_end_of_swap": str(seconds_to_end_of_swap.total_seconds())
+                }
+
+    if rows[0]["occ_swapped"] is not None:
+        occ_swapped = rows[0]["occ_swapped"]
+
+    if rows[0]["tusc_swapped"] is not None:
+        tusc_swapped = rows[0]["tusc_swapped"]
+
+    occ_left_to_swap = Decimal(general_cfg["maximum_occ"]) - occ_swapped
+
     return {
-        "occ_swapped": str(rows[0]["occ_swapped"]),
-        "tusc_swapped": str(rows[0]["tusc_swapped"]),
-        "occ_left_to_swap": str(occ_left_to_swap),
+        "occ_swapped": str(occ_swapped),
+        "tusc_swapped": str(tusc_swapped),
+        "occ_left_to_swap": format(occ_left_to_swap, 'f'),
         "seconds_to_end_of_swap": str(seconds_to_end_of_swap.total_seconds())
     }
 
