@@ -14,7 +14,7 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
 1. Get prereqs:
     1. `sudo yum update -y`
     1. `sudo yum install git gcc python3 python3-dev postgresql postgresql-libs postgresql-devel docker`
-    1. `sudo pip3 install web3 requests flask pyyaml psycopg2`
+    1. `sudo pip3 install web3 requests flask pyyaml psycopg2 pyopenssl flask-cors`
 1. Setup wallet:
     1. `sudo service docker start`
     1. `sudo docker run -it -P {wallet image}`

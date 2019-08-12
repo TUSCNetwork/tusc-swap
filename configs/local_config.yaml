@@ -20,3 +20,4 @@ general:
   testing: False
   swap_interval: 900 # in seconds.
   maximum_occ: "100000000000000000000000000000"
+  use_ssl: True

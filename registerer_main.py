@@ -14,12 +14,17 @@ logger.debug('Starting OCC to TUSC registration server')
 
 from tusc_api.webctrl_tusc_api import tusc_api
 import db_access.db as db
+from config import cfg
 
+general_cfg = cfg["general"]
 
 if __name__ == '__main__':
     logger.debug('Starting server')
     db.initiate_database_connection()
     app.logger = logger
     app.register_blueprint(tusc_api)
-    app.run(host='0.0.0.0', port=8080)
+    if general_cfg["use_ssl"]:
+        app.run(host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
+    else:
+        app.run(host='0.0.0.0', port=8080)
 
