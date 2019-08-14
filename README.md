@@ -69,9 +69,6 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
     1. `cd ~/swapper/tusc-swap/`
     1. `sudo python3 registerer_main.py`
     1. Ctrl-a, Ctrl-d (to detach from the screen running registerer)
-1. Configure swapper to run every 5 minutes
-
- 
 
 sudo yum install python3-devel
 ## Design

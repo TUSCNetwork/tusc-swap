@@ -24,7 +24,7 @@ if __name__ == '__main__':
     app.logger = logger
     app.register_blueprint(tusc_api)
     if general_cfg["use_ssl"]:
-        app.run(host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
+        app.run(host='0.0.0.0', port=8080, ssl_context=(general_cfg["ssl_cert_path"], general_cfg["ssl_key_path"]))
     else:
         app.run(host='0.0.0.0', port=8080)
 

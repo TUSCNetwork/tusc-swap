@@ -21,3 +21,5 @@ general:
   swap_interval: 900 # in seconds.
   maximum_occ: "100000000000000000000000000000"
   use_ssl: True
+  ssl_cert_path: "/path/to/cert.pem"
+  ssl_key_path: "/path/to/privkey.pem"
