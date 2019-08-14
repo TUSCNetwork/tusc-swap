@@ -93,6 +93,12 @@ def register_account(account_name: str, public_key: str) -> dict:
                             logger.error("Account name already exists")
                             return {"error": "Account name '" + account_name + "' is invalid. " +
                                              account_name_restrictions}
+
+                        if "base58str.size() > prefix_len:" in stack_obj["format"]:
+                            logger.error("Public key error")
+                            return {"error": "The public key '" + public_key + "' is invalid. Please double check "
+                                                                               "that it is correct and resubmit."}
+
         return DefaultErrorMessage
     else:
         return resp
