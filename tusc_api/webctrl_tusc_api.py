@@ -43,13 +43,12 @@ def list_account_balances(account_name):
 @tusc_api.route('/wallet/register_account', methods=["POST"])
 def register_account():
     logger.debug('register_account')
-    account_name = request.args.get('account_name')
-    public_key = request.args.get('public_key')
+    content = request.json
 
-    if account_name is not None and public_key is not None:
-        return gate_tusc_api.register_account(account_name, public_key)
+    if 'account_name' in content and 'public_key' in content:
+        return gate_tusc_api.register_account(content['account_name'], content['public_key'])
     else:
-        return
+        return {"error": "Expected account_name and public_key in json string"}
 
 # example response
 # {
