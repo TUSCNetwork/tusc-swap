@@ -13,8 +13,9 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
 
 1. Get prereqs:
     1. `sudo yum update -y`
-    1. `sudo yum install git gcc python3 python3-dev postgresql postgresql-libs postgresql-devel docker`
-    1. `sudo pip3 install web3 requests flask pyyaml psycopg2 pyopenssl flask-cors`
+    1. `sudo yum install git gcc python3 python3-dev postgresql postgresql-libs postgresql-devel docker nginx`
+    1. `sudo pip3 install web3 requests flask pyyaml psycopg2 pyopenssl flask-cors wheel gunicorn`
+    1. `sudo python3 -m venv env`
 1. Setup wallet:
     1. `sudo service docker start`
     1. `sudo docker run -it -P {wallet image}`
@@ -64,10 +65,17 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
     1. cd `~/swapper/tusc-swap/configs`
     1. `sudo nano local_config.yaml`
     1. Ensure the `db:password`, `eth_api:api_key`, and `eth_api:occ_contract_address` are all set correctly.
-1. Run the registerer
+1. Setup server:
+    1. `sudo systemctl enable nginx`
+    1. `sudo systemctl start nginx`
+1. Run the registerer (for dev)
     1. `screen -S registerer`
     1. `cd ~/swapper/tusc-swap/`
     1. `sudo python3 registerer_main.py`
+    1. Ctrl-a, Ctrl-d (to detach from the screen running registerer)
+1. Run the registerer (for prod)
+    1. `source env/bin/activate`
+    1. `gunicorn --certfile="cert.pem" --keyfile="privkey.pem" --bind 0.0.0.0:8080 registerer_wsgi:app`
     1. Ctrl-a, Ctrl-d (to detach from the screen running registerer)
 
 sudo yum install python3-devel
