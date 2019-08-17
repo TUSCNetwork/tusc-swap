@@ -3,7 +3,7 @@ Description=Gunicorn instance to serve tusc-swap
 After=network.target
 
 [Service]
-User=ec-user
+User=ec2-user
 Group=www-data
 WorkingDirectory=/home/ec2-user/swapper/tusc-swap
 Environment="PATH=/home/ec2-user/swapper/tusc-swap/env/bin"
