@@ -7,7 +7,7 @@ User=ec2-user
 Group=www-data
 WorkingDirectory=/home/ec2-user/swapper/tusc-swap
 Environment="PATH=/home/ec2-user/swapper/tusc-swap/env/bin"
-ExecStart=/home/ec2-user/swapper/tusc-swap/env/bin/gunicorn --certfile="cert.pem" --keyfile="privkey.pem" --bind 0.0.0.0:8080 registerer_wsgi:app
+ExecStart=/home/ec2-user/swapper/tusc-swap/env/bin/gunicorn --certfile="cert.pem" --keyfile="privkey.pem" --workers 3 --bind unix:tusc-swap.sock -m 007 registerer_wsgi:app
 
 [Install]
 WantedBy=multi-user.target
