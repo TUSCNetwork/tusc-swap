@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve tusc-swap
+After=network.target
+
+[Service]
+User=ec-user
+Group=www-data
+WorkingDirectory=/home/ec2-user/swapper/tusc-swap
+Environment="PATH=/home/ec2-user/swapper/tusc-swap/wnv/bin"
+ExecStart=/home/ec2-user/swapper/tusc-swap/env/bin/gunicorn --certfile="cert.pem" --keyfile="privkey.pem" --bind 0.0.0.0:8080 registerer_wsgi:app
+
+[Install]
+WantedBy=multi-user.target

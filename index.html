@@ -1,0 +1,58 @@
+<html>
+	<head>
+
+	</head>
+	<body style="width:36em;margin: 0 auto;max-width: 100%;line-height: 1.5;font-size: 18px">
+		<h1>TUSC Swap API</h1>
+        <hr />
+        <div id="suggest_brain_key">
+            '/wallet/suggest_brain_key', methods=["GET"]<br /><br />
+            example response<br />
+            ```<br />
+            {<br />
+                "brain_priv_key": "WADING OLITORY LOBULAR MULLET EXSHIP SUTLERY CONSUTE STATE<br />
+                MOOT CHEAP NEBULE FACIA CASHEL CYSTID LUNGY UVEAL",<br />
+                "wif_priv_key": "5KCSDw3Dng58VNeKm3Xf8dpxwxxDpTxSAs4n5kdF6VzQZdDuUc3",<br />
+                "pub_key": "TUSC6YZ8dWrEzGDnZPaRCxgXQ8yXeYMV9dvuUsrRskXW6FqTwPWyLT"<br />
+            }<br />
+            ```<br />
+        </div>
+        <hr />
+        <div id="list_account_balances">
+            '/wallet/list_account_balances/{account_name}', methods=["GET"]<br /><br />
+            example response<br />
+            [<br />
+              {<br />
+                  "amount": "999494821504412",<br />
+                  "asset_id": "1.3.0"<br />
+              },<br />
+              ...<br />
+            ]<br />
+        </div>
+        <hr />
+        <div id="register_account">
+            '/wallet/register_account', methods=["POST"]<br />
+            Accepted fields: account_name (str), public_key (str)<br /><br />
+        </div>
+        <hr />
+        <div id="swap_stats">
+            '/db/swap_stats', methods=["GET"]<br />
+            Accepted fields: account_name (str), public_key (str)<br /><br />
+            example response<br />
+            {<br />
+                "end_of_swap_date": "2019-10-01 00:00:00",<br />
+                "occ_left_to_swap": "100000000000000000000000000000",<br />
+                "occ_swapped": "0",<br />
+                "tusc_swapped": "0"<br />
+            }<br />
+            Note that OCC uses 18 decimal places of precision and TUSC uses 5. So the above values are really:<br />
+            OCC: 102348857281.025782841613573730<br />
+            TUSC: 51174428640.51290<br />
+        </div>
+        <hr />
+
+
+
+        <br /><br /><br /><br /><br /><br /><br />
+	</body>
+</html>

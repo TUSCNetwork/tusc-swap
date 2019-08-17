@@ -10,7 +10,6 @@ Setting up an AWS node:
 
 AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
 
-
 1. Get prereqs:
     1. `sudo yum update -y`
     1. `sudo yum install git gcc python3 python3-dev postgresql postgresql-libs postgresql-devel docker nginx`
@@ -61,11 +60,15 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
     1. `mkdir swapper`
     1. `cd swapper`
     1. `git clone https://github.com/TUSCNetwork/tusc-swap.git`
+    1. `sudo chown -R ec2-user ~/swapper/tusc-swap`
 1. Set the local_config.yaml settings:
     1. cd `~/swapper/tusc-swap/configs`
     1. `sudo nano local_config.yaml`
     1. Ensure the `db:password`, `eth_api:api_key`, and `eth_api:occ_contract_address` are all set correctly.
+1. Setup service:
+    1. `sudo cp tusc-swap.service /etc/systemd/system/tusc-swap.service`
 1. Setup server:
+    1. `sudo nano /etc/nginx/sites-available/tusc-swap`
     1. `sudo systemctl enable nginx`
     1. `sudo systemctl start nginx`
 1. Run the registerer (for dev)
