@@ -81,9 +81,9 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
     1. `cd ~/swapper/tusc-swap/`
     1. `sudo python3 registerer_main.py`
     1. Ctrl-a, Ctrl-d (to detach from the screen running registerer)
-1. Run the registerer (for prod)
+1. Run the registerer (for prod, without service)
     1. `source env/bin/activate`
-    1. `gunicorn --certfile="cert.pem" --keyfile="privkey.pem" --bind 0.0.0.0:8080 registerer_wsgi:app`
+    1. `gunicorn --bind 0.0.0.0:8080 registerer_wsgi:app`
     1. Ctrl-a, Ctrl-d (to detach from the screen running registerer)
 
 sudo yum install python3-devel
