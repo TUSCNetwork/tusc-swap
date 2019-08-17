@@ -67,6 +67,8 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
     1. Ensure the `db:password`, `eth_api:api_key`, and `eth_api:occ_contract_address` are all set correctly.
 1. Setup service:
     1. `sudo cp tusc-swap.service /etc/systemd/system/tusc-swap.service`
+    1. `sudo systemctl start tusc-swap`
+    1. `sudo systemctl enable tusc-swap`
 1. Setup server:
     1. `sudo nano /etc/nginx/sites-available/tusc-swap`
     1. `sudo systemctl enable nginx`
