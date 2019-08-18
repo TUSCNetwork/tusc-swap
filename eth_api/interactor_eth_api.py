@@ -56,27 +56,28 @@ def perform_transfer(transaction: dict) -> bool:
     does_account_exist = tusc_api.gate_tusc_api.get_account(transaction["tusc_address"])
 
     if 'error' in does_account_exist:
-        logging.error("Attempting to transfer for transaction " +
+        logger.error("Attempting to transfer for transaction " +
                       transaction["hash"] + " but TUSC account " + transaction["tusc_address"] +
                       " does not exist. Error returned from get_account: " + str(does_account_exist))
         return False
 
-    logging.debug("Preparing transfer for " + transaction["hash"])
+    logger.debug("Preparing transfer for " + transaction["hash"])
 
     # Transfer rate is 2 OCC to 1 TUSC
     # TODO: calculate transfer amount then perform the transfer
 
     occ_amount = int(transaction["value"])
     # OCC uses 18 decimal places. So 10,000,000,000,000,000,000,000 = 10,000
-    # TUSC uses 5 decimal places. So 1,000,000
+    # TUSC uses 5 decimal places. So 1,000,000,000 = 10,000
     # Take OCC amount, divide by 2 to get TUSC amount, reduce precision to 5 decimal places
-    tusc_amount = round((occ_amount/2) / 10000000000000)
-    logging.debug("Transferring " + str(occ_amount) + " OCC to " + str(tusc_amount) +
+    tusc_amount = round((occ_amount/2) / 1000000000000000000)
+    logger.debug("Transferring " + str(occ_amount) + " OCC to " + str(tusc_amount) +
                   " TUSC into TUSC account " + transaction["tusc_address"] + " for transaction " + transaction["hash"])
 
+    # The wallet accepts TUSC amount at precision. Meaning if you give it 100, you're actually transferring 100 TUSC.
     resp = tusc_api.gate_tusc_api.transfer(transaction["tusc_address"], str(tusc_amount))
     if 'error' in resp:
-        logging.error("Transfer for transaction " + transaction["hash"] + " failed!")
+        logger.error("Transfer for transaction " + transaction["hash"] + " failed!")
         return False
 
     db.save_completed_transfer(transaction, transaction["tusc_address"], occ_amount, tusc_amount)
