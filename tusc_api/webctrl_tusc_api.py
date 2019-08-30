@@ -8,7 +8,7 @@ import db_access.db as db
 logger = logging.getLogger('root')
 logger.debug('loading')
 
-tusc_api = Blueprint('tusc_api', 'tusc_api', url_prefix='/tusc/api')
+tusc_api = Blueprint('tusc_api', 'tusc_api', url_prefix='')
 
 # example response
 # ```

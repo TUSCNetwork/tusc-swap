@@ -12,9 +12,9 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
 
 1. Get prereqs:
     1. `sudo yum update -y`
-    1. `sudo yum install git gcc python3 python3-dev postgresql postgresql-libs postgresql-devel docker nginx`
+    1. `sudo yum install git gcc python3 python3-dev postgresql postgresql-server postgresql-libs postgresql-devel docker python3-devel`
     1. `sudo pip3 install web3 requests flask pyyaml psycopg2 pyopenssl flask-cors wheel gunicorn`
-    1. `sudo python3 -m venv env`
+    1. `sudo amazon-linux-extras install nginx1.12`
 1. Setup wallet:
     1. `sudo service docker start`
     1. `sudo docker run -it -P {wallet image}`
@@ -39,28 +39,30 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
     1. `sudo docker commit {container id} swap-wallet`
 1. Setup db:
     1. `sudo postgresql-setup initdb`
-    1. `sudo nano /var/lib/pgsql/data/pg_hba.conf`
-        1. Change the local domain socket connection and the IPv4 connection from "peer" to "md5" and save it
     1. `sudo systemctl enable postgresql.service`
     1. `sudo service postgresql start`
-    1. `psql -U postgres`
+    1. `sudo -u postgres psql`
     1. You'll be in the PSQL prompt now.
     1. Change the postgres user password
         1. `ALTER USER postgres WITH PASSWORD '{password}';`
     1. Make the tusc-swap database and tables:
         1. `create database "tusc-swap";`
         1. `\q`
+    1. `sudo nano /var/lib/pgsql/data/pg_hba.conf`
+        1. Change the local domain socket connection and the IPv4 connection from "peer" to "md5" and save it
+    1. `sudo service postgresql restart`
     1. Connect to the new db
         1. `psql "tusc-swap" postgres`
         1. Run the two `create table` commands in db_access/scripts/0001-init.sql
-    1. Exit psql and exit bash
         1. `\q`
-        1. `exit`
 1. Setup code:
     1. `mkdir swapper`
     1. `cd swapper`
     1. `git clone https://github.com/TUSCNetwork/tusc-swap.git`
     1. `sudo chown -R ec2-user ~/swapper/tusc-swap`
+    1. `cd tusc-swap`
+    1. `sudo python3 -m venv env`
+    1. `sudo chown -R ec2-user env/`
 1. Set the local_config.yaml settings:
     1. cd `~/swapper/tusc-swap/configs`
     1. `sudo nano local_config.yaml`
@@ -73,7 +75,8 @@ AMI: amzn2-ami-hvm-2.0.20190618-x86_64-gp2 (ami-0d8f6eb4f641ef691)
     1. `sudo systemctl start tusc-swap`
     1. `sudo systemctl enable tusc-swap`
 1. Setup server:
-    1. `sudo nano /etc/nginx/sites-available/tusc-swap`
+    1. `sudo nano /etc/nginx/nginx.conf`
+        1. Look in notes for nginx config
     1. `sudo systemctl enable nginx`
     1. `sudo systemctl start nginx`
 1. Run the registerer (for dev)
