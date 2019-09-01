@@ -4,6 +4,7 @@ import logging
 from config import cfg
 from web3 import Web3, HTTPProvider
 import eth_api.test_data as test_data
+from time import sleep
 
 logger = logging.getLogger('root')
 logger.debug('loading')
@@ -146,8 +147,24 @@ def get_account_balance() -> dict:
         return resp
 
 
-def get_transactions_list(starting_block_no: int = 0) -> list:
+def get_transction_input_as_tusc_address(txAddress: str) -> str:
+    resp, error = send_transaction_request(txAddress)
 
+    if error == ErrorCodeFailedMethodNameResponse:
+        return ""
+    else:
+        if len(resp["input"]) == 202:
+            try:
+                temp = swapper_contract.decode_function_input(resp["input"])
+                if len(temp) > 0 and "tusc_address" in temp[1]:
+                    return temp[1]["tusc_address"]
+            except ValueError as err:
+                logger.error("Error parsing transaction input: " + str(err))
+                logger.error("Transaction: " + txAddress)
+                return ""
+
+
+def get_transactions_list(starting_block_no: int = 0) -> list:
     resp, error = send_request({
         "module": "account",
         "action": "txlist",
@@ -163,23 +180,23 @@ def get_transactions_list(starting_block_no: int = 0) -> list:
         hashes = {}
 
         for tran in resp:
-            if tran["to"].lower() == eth_api_cfg["wallet_address_occ_omega"].lower() and \
-                    len(tran["input"]) == 202 and tran['hash'] not in hashes:
-                try:
-                    temp = swapper_contract.decode_function_input(tran["input"])
-                    if len(temp) > 0 and "tusc_address" in temp[1]:
-                        tran["tusc_address"] = temp[1]["tusc_address"]
-                    else:
-                        logger.error("Error in transaction from swapper contract")
-                        logger.error("Transaction: " + tran['hash'])
-                        logger.error("Decoded input: " + temp)
-                        tran["tusc_address"] = "UNKNOWN"
-                except ValueError as err:
-                    logger.error("Error parsing transaction input: " + str(err))
-                    logger.error("Transaction: " + tran['hash'])
+            if tran["to"].lower() == eth_api_cfg["wallet_address_occ_omega"].lower() and tran['hash'] not in hashes:
 
-                filtered_resp.append(tran)
+                temp = get_transction_input_as_tusc_address(tran['hash'])
+                if temp != "":
+                    tran["tusc_address"] = temp
+                else:
+                    logger.error("Error in transaction from swapper contract")
+                    logger.error("Transaction: " + tran['hash'])
+                    logger.error("Decoded input: " + temp)
+
+                if "tusc_address" in tran:
+                    filtered_resp.append(tran)
+
                 hashes[tran['hash']] = True
+
+            if eth_api_cfg["transaction_api_key"] == "freekey":
+                sleep(2.5)  # only allowed to request transactions every 2 seconds.
 
         return filtered_resp
 
@@ -201,23 +218,22 @@ def get_token_transactions_list(starting_block_no: int = 0) -> list:
         hashes = {}
 
         for tran in resp:
-            if tran["to"].lower() == eth_api_cfg["wallet_address_occ_omega"].lower() and \
-                    len(tran["input"]) == 202 and tran['hash'] not in hashes:
-                try:
-                    temp = swapper_contract.decode_function_input(tran["input"])
-                    if len(temp) > 0 and "tusc_address" in temp[1]:
-                        tran["tusc_address"] = temp[1]["tusc_address"]
-                    else:
-                        logger.error("Error in transaction from swapper contract")
-                        logger.error("Transaction: " + tran['hash'])
-                        logger.error("Decoded input: " + temp)
-                        tran["tusc_address"] = "UNKNOWN"
-                except ValueError as err:
-                    logger.error("Error parsing transaction input: " + str(err))
+            if tran["to"].lower() == eth_api_cfg["wallet_address_occ_omega"].lower() and tran['hash'] not in hashes:
+                temp = get_transction_input_as_tusc_address(tran['hash'])
+                if temp != "":
+                    tran["tusc_address"] = temp
+                else:
+                    logger.error("Error in transaction from swapper contract")
                     logger.error("Transaction: " + tran['hash'])
+                    logger.error("Decoded input: " + temp)
 
-                filtered_resp.append(tran)
+                if "tusc_address" in tran:
+                    filtered_resp.append(tran)
+
                 hashes[tran['hash']] = True
+
+                if eth_api_cfg["transaction_api_key"] == "freekey":
+                    sleep(2.5)  # only allowed to request transactions every 2 seconds.
 
         return filtered_resp
 
@@ -251,11 +267,56 @@ def send_request(command_params: dict) -> (list, int):
     r = requests.get(eth_api_cfg["ethereum_network_api_url"], params=api_params)
 
     try:
+        if r.status_code != 200:
+            logger.error("HTTP error connecting to ETH API, status code: " + str(r.status_code))
+            return ErrorCodeFailedMethodNameResponse
+
         api_response_json = json.loads(r.text)
         logger.debug("Command response: " + str(api_response_json))
 
         if "result" in api_response_json.keys():
             return api_response_json["result"], ErrorCodeSuccess
+        elif "error" in api_response_json.keys():
+            logger.error("Error in response from ETH api")
+            logger.error("Command response: " + str(api_response_json))
+        else:
+            logger.error("Unsure what happened with ETH API")
+            logger.error("Command response: " + str(api_response_json))
+
+            return DefaultErrorMessage, ErrorCodeFailedWithResponse
+    except json.JSONDecodeError as err:
+        logger.error(err)
+        return [], ErrorCodeFailedWithResponse
+
+
+def send_transaction_request(txAddress: str) -> (list, int):
+
+    # When error is ErrorCodeFailedWithResponse, pass back to caller.
+    # When error is ErrorCodeFailedMethodNameResponse, handle per method_name
+
+    # GET with params in query string
+    logger.debug("Sending command to ETH API")
+
+    api_params = {
+        'apiKey': eth_api_cfg["transaction_api_key"],
+    }
+
+    url = eth_api_cfg["ethereum_network_transaction_api_url"] + "/getTxInfo/" + txAddress
+
+    logger.debug("GET to: " + url + " with params = " + str(api_params))
+
+    r = requests.get(url, params=api_params)
+
+    try:
+        if r.status_code != 200:
+            logger.error("HTTP error connecting to ETH Transaction API, status code: " + str(r.status_code))
+            return ErrorCodeFailedMethodNameResponse
+
+        api_response_json = json.loads(r.text)
+        logger.debug("Command response: " + str(api_response_json))
+
+        if "hash" in api_response_json.keys():
+            return api_response_json, ErrorCodeSuccess
         elif "error" in api_response_json.keys():
             logger.error("Error in response from ETH api")
             logger.error("Command response: " + str(api_response_json))
