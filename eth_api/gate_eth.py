@@ -157,7 +157,7 @@ def get_transction_input_as_tusc_address(txAddress: str) -> str:
             try:
                 temp = swapper_contract.decode_function_input(resp["input"])
                 if len(temp) > 0 and "tusc_address" in temp[1]:
-                    return temp[1]["tusc_address"]
+                    return temp[1]["tusc_address"].strip()
             except ValueError as err:
                 logger.error("Error parsing transaction input: " + str(err))
                 logger.error("Transaction: " + txAddress)

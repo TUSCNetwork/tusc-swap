@@ -15,13 +15,13 @@ eth_api:
   ethereum_network_api_url: "https://api.etherscan.io/api"
   ethereum_network_transaction_api_url: "http://api.ethplorer.io"
   transaction_api_key: "freekey"
-  wallet_address_occ_omega: "UNKNOWN"
-  occ_contract_address: "0x75584b2bfa5eb391c8234abcfb4cde5c07e2cf30"
+  wallet_address_occ_omega: "0x3cC9FC1Ec11CE649A2f15aCe9850Ae441CEc47fA"
+  occ_contract_address: "0x0235fe624e044a05eed7a43e16e3083bc8a4287a"
 general:
   shut_off_date: "2019-10-01 00:00:00"  # In UTC timezone
   testing: False
   swap_interval: 900 # in seconds.
   maximum_occ: "100000000000000000000000000000"
-  use_ssl: True
+  use_ssl: False
   ssl_cert_path: "/path/to/cert.pem"
   ssl_key_path: "/path/to/privkey.pem"

@@ -11,6 +11,10 @@ def get_account_balance() -> dict:
     return gate.get_account_balance()
 
 
+def get_transction_input_as_tusc_address(txAddress: str) -> str:
+    return gate.get_transction_input_as_tusc_address(txAddress)
+
+
 def get_transactions_list(starting_block_no: int = 0) -> list:
     return gate.get_transactions_list(starting_block_no)
 
