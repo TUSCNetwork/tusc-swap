@@ -25,3 +25,5 @@ general:
   use_ssl: False
   ssl_cert_path: "/path/to/cert.pem"
   ssl_key_path: "/path/to/privkey.pem"
+  captcha_secret: "UNKNOWN"
+  ip_request_blocking_hours: 24
