@@ -78,12 +78,15 @@ def register_account():
 
 def is_ip_allowed(ip_address) -> bool:
     global ip_addresses
+    logger.debug('is_ip_allowed: checking ip "' + ip_address + '"')
 
     now = datetime.now()
     if ip_address in ip_addresses:
         if ip_addresses[ip_address] > now - timedelta(hours=general_cfg['ip_request_blocking_hours']):
+            logger.debug('is_ip_allowed: ip "' + ip_address + '" is not allowed')
             return False
         else:
+            logger.debug('is_ip_allowed: ip "' + ip_address + '" is allowed')
             return True
 
     return True
