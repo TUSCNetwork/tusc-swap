@@ -24,10 +24,20 @@ if __name__ == '__main__':
     logger.debug('Starting swapper')
     db.initiate_database_connection()
 
+    retry_interval = 4
+    swap_count = 0
     while True:
         logger.debug('Swapping')
         eth_api.handle_new_transactions()
-        logger.debug('Done swapping. Waiting ' + str(general_cfg["swap_interval"]) +
-                     ' seconds before next swap.')
+        logger.debug('Done swapping.')
 
+        swap_count = swap_count + 1
+
+        if swap_count % retry_interval == 0:
+            logger.debug('Retrying failed transfers')
+            eth_api.retry_failed_transfers()
+            logger.debug('Done retrying failed transfers.')
+
+        logger.debug('Waiting ' + str(general_cfg["swap_interval"]) +
+                     ' seconds before next swap.')
         time.sleep(general_cfg["swap_interval"])

@@ -45,7 +45,7 @@ def handle_new_transactions():
             # build a list of transaction hashes to check against the db
             transaction_hashes.append(transactions[i]['hash'])
 
-    transactions_already_performed = db.get_completed_transfers_by_hash_ids(transaction_hashes)
+    transactions_already_performed = db.get_all_transfers_by_hash_ids(transaction_hashes)
 
     for i in range(len(transactions)):
         if transactions[i]['hash'] not in transactions_already_performed:
@@ -60,6 +60,17 @@ def handle_new_transactions():
         db.set_highest_block_handled(highest_block)
 
 
+def retry_failed_transfers():
+    # Loop through transactions list and find all hashes.
+    failed_transactions = db.get_failed_transfers()
+
+    if len(failed_transactions) == 0:
+        return
+
+    for i in range(len(failed_transactions)):
+        retry_failed_transfer(failed_transactions[i])
+
+
 def perform_transfer(transaction: dict) -> bool:
     # Ensure TUSC account exists
     does_account_exist = tusc_api.gate_tusc_api.get_account(transaction["tusc_address"])
@@ -68,28 +79,58 @@ def perform_transfer(transaction: dict) -> bool:
         logger.error("Attempting to transfer for transaction " +
                       transaction["hash"] + " but TUSC account " + transaction["tusc_address"] +
                       " does not exist. Error returned from get_account: " + str(does_account_exist))
-        return False
 
     logger.debug("Preparing transfer for " + transaction["hash"])
 
     # Transfer rate is 2 OCC to 1 TUSC
-    # TODO: calculate transfer amount then perform the transfer
 
     occ_amount = int(transaction["value"])
     # OCC uses 18 decimal places. So 10,000,000,000,000,000,000,000 = 10,000
     # TUSC uses 5 decimal places. So 1,000,000,000 = 10,000
     # Take OCC amount, divide by 2 to get TUSC amount, reduce precision to 5 decimal places
     tusc_amount = round((occ_amount/2) / 1000000000000000000)
-    logger.debug("Transferring " + str(occ_amount) + " OCC to " + str(tusc_amount) +
-                  " TUSC into TUSC account " + transaction["tusc_address"] + " for transaction " + transaction["hash"])
 
-    # The wallet accepts TUSC amount at precision. Meaning if you give it 100, you're actually transferring 100 TUSC.
-    resp = tusc_api.gate_tusc_api.transfer(transaction["tusc_address"], str(tusc_amount))
-    if 'error' in resp:
-        logger.error("Transfer for transaction " + transaction["hash"] + " failed!")
-        return False
+    if 'error' not in does_account_exist:
+        logger.debug("Transferring " + str(occ_amount) + " OCC to " + str(tusc_amount) +
+                     " TUSC into TUSC account " + transaction["tusc_address"] + " for transaction " + transaction[
+                         "hash"])
 
-    db.save_completed_transfer(transaction["hash"], transaction["tusc_address"], occ_amount, tusc_amount)
+        # The wallet accepts TUSC amount at precision. Meaning if you give it 100,
+        # you're actually transferring 100 TUSC.
+        resp = tusc_api.gate_tusc_api.transfer(transaction["tusc_address"], str(tusc_amount))
+        if 'error' in resp:
+            logger.error("Transfer for transaction " + transaction["hash"] + " failed!")
+            return False
+
+        db.save_completed_transfer(transaction["hash"], transaction["tusc_address"], occ_amount, tusc_amount)
+    else:
+        db.save_failed_transfer(transaction["hash"], transaction["tusc_address"], occ_amount, tusc_amount)
+
+    return True
+
+
+def retry_failed_transfer(transfer: dict) -> bool:
+    # Ensure TUSC account exists
+    does_account_exist = tusc_api.gate_tusc_api.get_account(transfer["tusc_account_name"])
+
+    if 'error' in does_account_exist:
+        logger.error("Attempting to transfer for transaction " +
+                      transfer["eth_transaction_hash"] + " but TUSC account " + transfer["tusc_account_name"] +
+                      " does not exist. Error returned from get_account: " + str(does_account_exist))
+
+    logger.debug("Preparing transfer for " + transfer["eth_transaction_hash"])
+
+    if 'error' not in does_account_exist:
+        logger.debug("Transferring " + str(transfer["occ_amount"]) + " OCC to " + str(transfer["tusc_amount"]) +
+                     " TUSC into TUSC account " + transfer["tusc_account_name"] + " for transaction " + transfer[
+                         "eth_transaction_hash"])
+
+        resp = tusc_api.gate_tusc_api.transfer(transfer["tusc_account_name"], str(transfer["tusc_amount"]))
+        if 'error' in resp:
+            logger.error("Transfer for transaction " + transfer["eth_transaction_hash"] + " failed!")
+            return False
+
+        db.update_transfer(transfer["eth_transaction_hash"], True)
 
     return True
 
@@ -106,7 +147,7 @@ def perform_all_recovery_transactions():
         # build a list of transaction hashes to check against the db
         transaction_hashes.append(transactions[i]['eth_transaction_hash'])
 
-    transactions_already_performed = db.get_completed_transfers_by_hash_ids(transaction_hashes)
+    transactions_already_performed = db.get_all_transfers_by_hash_ids(transaction_hashes)
 
     for i in range(len(transactions)):
         transaction = transactions[i]

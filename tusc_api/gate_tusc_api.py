@@ -152,8 +152,9 @@ def transfer(to: str, amount: str) -> dict:
 
 def send_request(method_name: str, params: list, do_not_log_data=False) -> (dict, int):
     if general_cfg["testing"]:
-        if method_name == "get_account" or \
-                method_name == "transfer":
+        if method_name == "get_account":
+            return {"error": "failed"}, ErrorCodeSuccess
+        if method_name == "transfer":
             return {}, ErrorCodeSuccess
         if method_name == "list_account_balances":
             return {}, ErrorCodeSuccess

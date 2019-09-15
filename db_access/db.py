@@ -68,7 +68,7 @@ def set_highest_block_handled(block_number: int):
     return
 
 
-def get_completed_transfers_by_hash_ids(transaction_hashes: list) -> dict:
+def get_all_transfers_by_hash_ids(transaction_hashes: list) -> dict:
     # Query DB and fill a dict with all the hashes
     if len(transaction_hashes) < 1 or transaction_hashes is None:
         return {}
@@ -79,9 +79,9 @@ def get_completed_transfers_by_hash_ids(transaction_hashes: list) -> dict:
 
     try:
         cur.execute("""select * from transfers where 
-        eth_transaction_hash in ({}) """.format(','.join(hashes_with_quotes)))
+        eth_transaction_hash in ({})""".format(','.join(hashes_with_quotes)))
     except:
-        logger.exception('Failed get_completed_transfers_by_hash_ids')
+        logger.exception('Failed get_all_transfers_by_hash_ids')
         return {}
 
     rows = cur.fetchall()
@@ -91,17 +91,39 @@ def get_completed_transfers_by_hash_ids(transaction_hashes: list) -> dict:
     return {i['eth_transaction_hash']: i for i in rows}
 
 
-def save_completed_transfer(transaction_hash: str,
-                            tusc_account_name: str,
-                            amount_in_occ_transferred: int,
-                            amount_in_tusc_transferred: int):
+def get_failed_transfers() -> dict:
+    conn = get_database_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    try:
+        cur.execute("""select * from transfers where success = false;""")
+    except:
+        logger.exception('Failed get_failed_transfers')
+        return {}
+
+    rows = cur.fetchall()
+    if len(rows) < 1:
+        return {}
+
+    return rows
+
+
+def save_transfer(transaction_hash: str,
+                  tusc_account_name: str,
+                  amount_in_occ_transferred: int,
+                  amount_in_tusc_transferred: int,
+                  success: bool):
 
     conn = get_database_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    q = "insert into transfers (eth_transaction_hash, tusc_account_name, occ_amount, tusc_amount) " \
-        "values ('{}','{}', '{}', '{}');".\
-        format(transaction_hash, tusc_account_name.strip(), amount_in_occ_transferred, amount_in_tusc_transferred)
+    q = "insert into transfers (eth_transaction_hash, tusc_account_name, occ_amount, tusc_amount, success) " \
+        "values ('{}','{}', '{}', '{}', {});".\
+        format(transaction_hash,
+               tusc_account_name.strip(),
+               amount_in_occ_transferred,
+               amount_in_tusc_transferred,
+               success)
 
     try:
         cur.execute(q)
@@ -114,6 +136,40 @@ def save_completed_transfer(transaction_hash: str,
         return
 
     return
+
+
+def update_transfer(transaction_hash: str,
+                    success: bool):
+
+    conn = get_database_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    q = "update transfers set success = {} where eth_transaction_hash = '{}'".\
+        format(success, transaction_hash)
+
+    try:
+        cur.execute(q)
+        conn.commit()
+    except:
+        logger.exception('Failed update_transfer: transaction_hash = ' + transaction_hash +
+                         ', success = ' + str(success))
+        return
+
+    return
+
+
+def save_completed_transfer(transaction_hash: str,
+                            tusc_account_name: str,
+                            amount_in_occ_transferred: int,
+                            amount_in_tusc_transferred: int):
+    save_transfer(transaction_hash,tusc_account_name, amount_in_occ_transferred, amount_in_tusc_transferred, True)
+
+
+def save_failed_transfer(transaction_hash: str,
+                         tusc_account_name: str,
+                         amount_in_occ_transferred: int,
+                         amount_in_tusc_transferred: int):
+    save_transfer(transaction_hash, tusc_account_name, amount_in_occ_transferred, amount_in_tusc_transferred, False)
 
 
 def get_account_registration_count() -> int:
