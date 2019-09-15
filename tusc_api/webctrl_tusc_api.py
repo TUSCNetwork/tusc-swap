@@ -53,9 +53,9 @@ def register_account():
     content = request.json
     ip_address = request.remote_addr
 
-    if not is_ip_allowed(ip_address):
-        return {"error": "For security purposes, you are only allowed to register an account every " +
-                         str(general_cfg['ip_request_blocking_hours']) + " hours."}
+    # if not is_ip_allowed(ip_address):
+    #     return {"error": "For security purposes, you are only allowed to register an account every " +
+    #                      str(general_cfg['ip_request_blocking_hours']) + " hours."}
 
     did_recaptcha_succeed = False
     if 'recaptcha_response' in content:
