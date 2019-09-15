@@ -1,8 +1,9 @@
 import requests
 import json
 import logging
-
+import db_access.db as db
 from config import cfg
+import eth_api.interactor_eth_api as eth_api
 
 logger = logging.getLogger('root')
 logger.debug('loading')
@@ -15,6 +16,7 @@ ErrorCodeFailedMethodNameResponse = 2
 
 tusc_api_cfg = cfg["tusc_api"]
 general_cfg = cfg["general"]
+
 
 def build_request_dict(method_name: str, params: list) -> dict:
     tusc_wallet_command_structure = {
@@ -44,7 +46,7 @@ def suggest_brain_key() -> dict:
 
 
 def list_account_balances(account_name: str) -> dict:
-    resp, error =  send_request("list_account_balances", [account_name])
+    resp, error = send_request("list_account_balances", [account_name])
 
     if error == ErrorCodeFailedMethodNameResponse:
         # handle list_account_balances specific errors
@@ -58,6 +60,15 @@ def list_account_balances(account_name: str) -> dict:
         return DefaultErrorMessage
     else:
         return resp
+
+
+def does_account_exist(account_name: str) -> bool:
+    resp = list_account_balances(account_name)
+
+    if "error" in resp:
+        return False
+    else:
+        return True
 
 
 def register_account(account_name: str, public_key: str) -> dict:
@@ -101,16 +112,7 @@ def register_account(account_name: str, public_key: str) -> dict:
 
         return DefaultErrorMessage
     else:
-        return resp
-
-
-def suggest_brain_key() -> dict:
-    resp, error = send_request("suggest_brain_key", [], True)
-
-    if error == ErrorCodeFailedMethodNameResponse:
-        # handle suggest_brain_key specific errors
-        return DefaultErrorMessage
-    else:
+        db.save_completed_registration(account_name, public_key)
         return resp
 
 
@@ -121,6 +123,16 @@ def get_account(account_name: str) -> dict:
         return DefaultErrorMessage
     else:
         return resp
+
+
+def get_account_public_key(account_name: str) -> str:
+    resp, error = send_request("get_account", [account_name], True)
+
+    if error == ErrorCodeFailedMethodNameResponse:
+        return "ERROR"
+    else:
+        # find the account's public key and return that
+        return resp["result"]["owner"]["key_auths"][0][0]
 
 
 def transfer(to: str, amount: str) -> dict:
@@ -140,8 +152,13 @@ def transfer(to: str, amount: str) -> dict:
 
 def send_request(method_name: str, params: list, do_not_log_data=False) -> (dict, int):
     if general_cfg["testing"]:
-        if method_name == "get_account" or method_name == "transfer":
+        if method_name == "get_account" or \
+                method_name == "transfer":
             return {}, ErrorCodeSuccess
+        if method_name == "list_account_balances":
+            return {}, ErrorCodeSuccess
+        if method_name == "register_account":
+            return {"error": "already in use"}, ErrorCodeSuccess
 
     # when error is ErrorCodeFailedWithResponse, pass back to caller.
     # When error is ErrorCodeFailedMethodNameResponse, handle per method_name
@@ -198,6 +215,45 @@ def handle_generic_tusc_errors(api_response_json: dict) -> (dict, int):
                         return DefaultErrorMessage, ErrorCodeFailedWithResponse
 
     return api_response_json, ErrorCodeFailedMethodNameResponse
+
+
+def get_recovery_public_keys():
+    # Loop through transactions in mainnet_recovery and find pubkeys.
+    transactions = db.get_recovery_list()
+
+    if len(transactions) == 0:
+        return
+
+    for i in range(len(transactions)):
+        transactions[i]['tusc_public_key'] = get_account_public_key(transactions[i]['tusc_account_name'].strip())
+        db.update_recovery_public_key(transactions[i])
+
+
+def register_all_recovery_accounts():
+    transactions = db.get_recovery_list_account_names()
+
+    if len(transactions) == 0:
+        return
+
+    for i in range(len(transactions)):
+        acc_name = transactions[i]['tusc_account_name'].strip()
+        acc_pub_key = transactions[i]['tusc_public_key'].strip()
+        if not does_account_exist(transactions[i]['tusc_account_name'].strip()):
+            # most likely doesn't exist, so create it
+            res = register_account(acc_name, acc_pub_key)
+            if 'error' in res:
+                if 'already in use' in res['error']:
+                    return
+
+                logger.error("Failed to register recovery account '" + acc_name
+                             + "' with public key '" + acc_pub_key + "'")
+                return
+            else:
+                logger.debug("Successfully registered recovery account '" + acc_name
+                             + "' with public key '" + acc_pub_key + "'")
+        else:
+            logger.debug("Skipping registration of recovery account '" + acc_name
+                         + "' with public key '" + acc_pub_key + "'")
 
 
 logger.debug('loaded')

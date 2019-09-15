@@ -27,3 +27,4 @@ general:
   ssl_key_path: "/path/to/privkey.pem"
   captcha_secret: "UNKNOWN"
   ip_request_blocking_hours: 24
+  highest_block_number_handled: 8533137
