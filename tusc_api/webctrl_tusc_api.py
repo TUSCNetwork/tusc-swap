@@ -50,6 +50,8 @@ def list_account_balances(account_name):
 def register_account():
     global ip_addresses
     logger.debug('register_account, request from ' + request.remote_addr)
+    logger.debug('register_account, request from X-Real-IP ' + request.headers.get('X-Real-IP'))
+
     content = request.json
     ip_address = request.remote_addr
 
@@ -125,6 +127,7 @@ def handle_captcha(captcha_response, ip) -> bool:
 @tusc_api.route('/db/swap_stats', methods=["GET"])
 def swap_stats():
     logger.debug('swap_stats, request from ' + request.remote_addr)
+    logger.debug('swap_stats, request from X-Real-IP ' + request.headers.get('X-Real-IP'))
     return db.get_swap_stats()
 
 logger.debug('loaded')
