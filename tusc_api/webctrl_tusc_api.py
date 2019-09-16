@@ -27,7 +27,7 @@ ip_addresses = {}
 # ```
 @tusc_api.route('/wallet/suggest_brain_key', methods=["GET"])
 def suggest_brain_key():
-    logger.debug('suggest_brain_key, request from ' + request.remote_addr)
+    logger.debug('suggest_brain_key, request from ' + request.headers.get('X-Real-IP'))
     return gate_tusc_api.suggest_brain_key()
 
 
@@ -41,7 +41,7 @@ def suggest_brain_key():
 # ]
 @tusc_api.route('/wallet/list_account_balances/<account_name>', methods=["GET"])
 def list_account_balances(account_name):
-    logger.debug('list_account_balances, request from ' + request.remote_addr)
+    logger.debug('list_account_balances, request from ' + request.headers.get('X-Real-IP'))
     return gate_tusc_api.list_account_balances(account_name)
 
 
@@ -49,15 +49,14 @@ def list_account_balances(account_name):
 @tusc_api.route('/wallet/register_account', methods=["POST"])
 def register_account():
     global ip_addresses
-    logger.debug('register_account, request from ' + request.remote_addr)
-    logger.debug('register_account, request from X-Real-IP ' + request.headers.get('X-Real-IP'))
+    logger.debug('register_account, request from ' + request.headers.get('X-Real-IP'))
 
     content = request.json
     ip_address = request.remote_addr
 
-    # if not is_ip_allowed(ip_address):
-    #     return {"error": "For security purposes, you are only allowed to register an account every " +
-    #                      str(general_cfg['ip_request_blocking_hours']) + " hours."}
+    if not is_ip_allowed(ip_address):
+        return {"error": "For security purposes, you are only allowed to register an account every " +
+                         str(general_cfg['ip_request_blocking_hours']) + " hours."}
 
     did_recaptcha_succeed = False
     if 'recaptcha_response' in content:
@@ -126,8 +125,8 @@ def handle_captcha(captcha_response, ip) -> bool:
 # TUSC: 51174428640.51290
 @tusc_api.route('/db/swap_stats', methods=["GET"])
 def swap_stats():
-    logger.debug('swap_stats, request from ' + request.remote_addr)
-    logger.debug('swap_stats, request from X-Real-IP ' + request.headers.get('X-Real-IP'))
+    logger.debug('swap_stats, request from ' + request.headers.get('X-Real-IP'))
     return db.get_swap_stats()
+
 
 logger.debug('loaded')
