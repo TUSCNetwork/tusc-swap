@@ -52,7 +52,7 @@ def register_account():
     logger.debug('register_account, request from ' + request.headers.get('X-Real-IP'))
 
     content = request.json
-    ip_address = request.remote_addr
+    ip_address = request.headers.get('X-Real-IP')
 
     if not is_ip_allowed(ip_address):
         return {"error": "For security purposes, you are only allowed to register an account every " +
